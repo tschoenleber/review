@@ -3,8 +3,8 @@ DROP TABLE IF EXISTS coupons;
 CREATE TABLE coupons (
   id INT AUTO_INCREMENT  PRIMARY KEY,
   code  VARCHAR(250) NOT NULL,
-  discount VARCHAR(250) NOT NULL,
-  minBasketValue VARCHAR(250) DEFAULT NULL
+  discount NUMBER(12,2) NOT NULL,
+  minBasketValue NUMBER(12,2) DEFAULT NULL
 );
  
 INSERT INTO coupons (code, discount, minBasketValue) VALUES
