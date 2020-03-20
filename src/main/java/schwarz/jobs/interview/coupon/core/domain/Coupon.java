@@ -27,7 +27,7 @@ public class Coupon {
     @Column(name = "discount", precision = 10, scale = 2)
     private BigDecimal discount;
 
-    @Column(name = "mindBasketValue", precision = 10, scale = 2)
+    @Column(name = "minBasketValue", precision = 10, scale = 2)
     private BigDecimal minBasketValue;
 
 }
