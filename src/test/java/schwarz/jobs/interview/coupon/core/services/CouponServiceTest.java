@@ -21,6 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import schwarz.jobs.interview.coupon.core.domain.Coupon;
 import schwarz.jobs.interview.coupon.core.repository.CouponRepository;
 import schwarz.jobs.interview.coupon.core.services.model.Basket;
+import schwarz.jobs.interview.coupon.web.dto.ApplicationRequestDTO;
 import schwarz.jobs.interview.coupon.web.dto.CouponDTO;
 import schwarz.jobs.interview.coupon.web.dto.CouponRequestDTO;
 
@@ -59,7 +60,11 @@ public class CouponServiceTest {
             .minBasketValue(BigDecimal.valueOf(50))
             .build()));
 
-        Optional<Basket> optionalBasket = couponService.apply(firstBasket, "1111");
+        Optional<Basket> optionalBasket = couponService.apply(
+                ApplicationRequestDTO.builder().basket(firstBasket)
+                .code("1111").build()
+
+        );
 
         assertThat(optionalBasket).hasValueSatisfying(b -> {
             assertThat(b.getAppliedDiscount()).isEqualTo(BigDecimal.TEN);
@@ -70,7 +75,11 @@ public class CouponServiceTest {
             .value(BigDecimal.valueOf(0))
             .build();
 
-        optionalBasket = couponService.apply(secondBasket, "1111");
+        optionalBasket = couponService.apply(
+                ApplicationRequestDTO.builder().basket(secondBasket)
+                        .code("1111").build()
+
+        );
 
         assertThat(optionalBasket).hasValueSatisfying(b -> {
             assertThat(b).isEqualTo(secondBasket);
@@ -81,10 +90,14 @@ public class CouponServiceTest {
             .value(BigDecimal.valueOf(-1))
             .build();
 
-        assertThatThrownBy(() -> {
-            couponService.apply(thirdBasket, "1111");
-        }).isInstanceOf(RuntimeException.class)
-            .hasMessage("Can't apply negative discounts");
+        assertThatThrownBy(() -> couponService
+                .apply(
+                        ApplicationRequestDTO.builder().basket(thirdBasket)
+                                .code("1111").build()
+
+                ))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Can't apply negative discounts");
     }
 
     @Test
@@ -94,7 +107,20 @@ public class CouponServiceTest {
             .codes(Arrays.asList("1111", "1234"))
             .build();
 
-        when(couponRepository.findByCode(any()))
+        when(couponRepository.findByCodeIn(any()))
+                .thenReturn(Arrays.asList(
+                        Coupon.builder()
+                                .code("1111")
+                                .discount(BigDecimal.TEN)
+                                .minBasketValue(BigDecimal.valueOf(50))
+                                .build(),
+                        Coupon.builder()
+                                .code("1234")
+                                .discount(BigDecimal.TEN)
+                                .minBasketValue(BigDecimal.valueOf(50))
+                                .build()
+                ));
+                /*
             .thenReturn(Optional.of(Coupon.builder()
                 .code("1111")
                 .discount(BigDecimal.TEN)
@@ -104,7 +130,7 @@ public class CouponServiceTest {
                 .code("1234")
                 .discount(BigDecimal.TEN)
                 .minBasketValue(BigDecimal.valueOf(50))
-                .build()));
+                .build()));*/
 
         List<Coupon> returnedCoupons = couponService.getCoupons(dto);
 

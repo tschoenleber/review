@@ -1,6 +1,6 @@
 package schwarz.jobs.interview.coupon.core.services;
 
-import java.util.ArrayList;
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,9 +10,12 @@ import lombok.RequiredArgsConstructor;
 import schwarz.jobs.interview.coupon.core.domain.Coupon;
 import schwarz.jobs.interview.coupon.core.repository.CouponRepository;
 import schwarz.jobs.interview.coupon.core.services.model.Basket;
+import schwarz.jobs.interview.coupon.web.dto.ApplicationRequestDTO;
 import schwarz.jobs.interview.coupon.web.dto.CouponDTO;
 import schwarz.jobs.interview.coupon.web.dto.CouponRequestDTO;
 
+import javax.validation.Valid;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponService {
@@ -23,10 +26,21 @@ public class CouponService {
         return couponRepository.findByCode(code);
     }
 
-    public Optional<Basket> apply(final Basket basket, final String code) {
-
+    public Optional<Basket> apply(@Valid  ApplicationRequestDTO applicationRequestDTO) {
+        final String code = applicationRequestDTO.getCode();
+        final Basket basket = applicationRequestDTO.getBasket();
         return getCoupon(code).map(coupon -> {
+            if (basket.getValue().doubleValue() >0) {
+                basket.applyDiscount(coupon.getDiscount());
+                basket.setApplicationSuccessful(true);
+            }else if (basket.getValue().doubleValue() == 0) {
+                return basket;
+            }else{
+                log.error("DEBUG: TRIED TO APPLY NEGATIVE DISCOUNT!");
 
+                throw new RuntimeException("Can't apply negative discounts");
+            }
+/*
             if (basket.getValue().doubleValue() >= 0) {
 
                 if (basket.getValue().doubleValue() > 0) {
@@ -41,11 +55,21 @@ public class CouponService {
                 System.out.println("DEBUG: TRIED TO APPLY NEGATIVE DISCOUNT!");
                 throw new RuntimeException("Can't apply negative discounts");
             }
-
+*/
             return basket;
         });
     }
+    public Coupon createCoupon(@Valid final CouponDTO couponDTO) {
 
+        Coupon  coupon = Coupon.builder()
+                .code(couponDTO.getCode().toLowerCase())
+                .discount(couponDTO.getDiscount())
+                .minBasketValue(couponDTO.getMinBasketValue())
+                .build();
+        return couponRepository.save(coupon);
+
+    }
+/*
     public Coupon createCoupon(final CouponDTO couponDTO) {
 
         Coupon coupon = null;
@@ -64,7 +88,14 @@ public class CouponService {
 
         return couponRepository.save(coupon);
     }
+*/
 
+    public List<Coupon> getCoupons(@Valid final CouponRequestDTO couponRequestDTO) {
+
+       return couponRepository.findByCodeIn(couponRequestDTO.getCodes());
+
+    }
+    /*
     public List<Coupon> getCoupons(final CouponRequestDTO couponRequestDTO) {
 
         final ArrayList<Coupon> foundCoupons = new ArrayList<>();
@@ -73,4 +104,5 @@ public class CouponService {
 
         return foundCoupons;
     }
+    */
 }
