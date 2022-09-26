@@ -19,7 +19,7 @@ public class Basket {
     private boolean applicationSuccessful;
 
     public void applyDiscount(final BigDecimal discount) {
-        this.applicationSuccessful = false;
+        this.applicationSuccessful = true;
         this.appliedDiscount = discount;
     }
 

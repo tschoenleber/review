@@ -11,6 +11,7 @@ public class CouponDTO {
 
     private BigDecimal discount;
 
+    @NonNull
     private String code;
 
     private BigDecimal minBasketValue;
